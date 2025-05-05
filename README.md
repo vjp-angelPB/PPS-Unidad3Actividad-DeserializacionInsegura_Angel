@@ -187,6 +187,10 @@ A la hora de intercambiar objetos entre diferentes módulos, pasamos el objeto s
 
 
 
+
+
+echo "El servidor ha sido hackeado" > /var/www/html/ServidorHackeado.tmp
+
 ----------------------------------------------------------
 
 
